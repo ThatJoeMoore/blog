@@ -1,4 +1,4 @@
-baseurl = "https://www.thatjoemoore.com"
+baseurl = "/"
 languageCode = "en"
 title = "Joseph Moore"
 theme = "kiss"
