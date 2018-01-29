@@ -1,6 +1,6 @@
 ---
 title: "From My Archive: Emojifying my Bash Prompt (and why you should too)"
-date: 2018-01-28T23:05:52-07:00
+date: 2017-07-29T23:05:52-07:00
 description: Plus some Deep Thoughts about happiness and life.
 cover_image: https://thepracticaldev.s3.amazonaws.com/i/2zkpgx046w080s14xfsn.jpg
 ---
