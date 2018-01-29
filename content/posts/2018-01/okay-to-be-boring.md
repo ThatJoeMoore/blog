@@ -21,8 +21,9 @@ I've been trying lately to work in a more minimalistic way, repeating to myself 
 to separate what's important from what's just something that needs to be done, and while things in the second category still
 need to get done, they might not warrant as much time as things in the other group. So what's important about a blog? Is it 
 the look, or the underlying code? No, it's the *content*. So, here I am, using [Somebody Else's Code](https://gohugo.io) to 
-generate a site that uses [Somebody Else's Theme](https://themes.gohugo.io/theme/kiss/). Sure, I'll probably get around to
-customizing the styling at some point, and perhaps even tinker with the underlying generator, but I can live with these ones.
+generate a site that uses [Somebody Else's Theme](https://themes.gohugo.io/theme/kiss/) and is served from
+[Somebody Else's Servers](https://www.netlify.com/). Sure, I'll probably get around to customizing the styling at some point,
+and perhaps even tinker with the underlying generator, but, for now, I can live with it all being Somebody Else's Problem.
 
-For now, it's okay to be boring, because at least I'm getting stuff done. And by getting stuff done, I mean, of course, rambling
+It's okay to be boring, because at least I'm getting stuff done. And by getting stuff done, I mean, of course, rambling
 about boring things and proffering unsolicited opinions, since that's what I *really* want to do anyway.
