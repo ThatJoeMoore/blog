@@ -7,6 +7,8 @@ copyright = "&copy; Joseph Moore 2018"
 Paginate = 5
 enableRobotsTXT = true
 
+pygmentsCodeFences=true
+
 [params.assets]
 customCSS = ["css/custom.css"]
 
