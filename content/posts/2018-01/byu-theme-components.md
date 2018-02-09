@@ -194,13 +194,13 @@ __Goal Check In:__
 * [x] Simple
 * [x] Fixable
 
-# There are Always Trade-offs
+# Additional Challenges
 
-Everything in our trade has trade-offs. Web components are no exception, and a year ago, there were still a lot of unanswered questions. 
+There are always problems that you don't forsee going into a project (or even some that you forsee, but decide not to tackle until later). Here are some of the ones we faced.
 
 ## Opting-out of a Framework
 
-When we started, [Polymer 2](https://www.polymer-project.org/) was still a few months from being released, and we weren't enamoured with Polymer's insistence on using the never-going-to-be-implemented HTML Imports specification. [SkateJS](http://skatejs.netlify.com/) was an option, but we didn't really like the way Skate was handling templates.
+When we started working on this a year ago, [Polymer 2](https://www.polymer-project.org/) was still a few months from being released, and we weren't enamoured with Polymer's insistence on using the never-going-to-be-implemented HTML Imports specification. [SkateJS](http://skatejs.netlify.com/) was an option, but we didn't really like the way Skate was handling templates.
 
 Faced with these options, we decided early on that we didn't really need a Web Component framework. Our components were going to be fairly static - stamp the DOM once, allow for a few small dynamic things, and be done with it. So, we thought, it wouldn't be that terrible to use the raw Custom Element APIs, augmented with a small collection of helper functions for doing common things (like stamping a template to the Shadow DOM).
 
