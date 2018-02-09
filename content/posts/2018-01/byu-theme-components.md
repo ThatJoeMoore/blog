@@ -2,10 +2,14 @@
 title: "Bringing Order to Web Design Chaos"
 description: "Or, how I learned to stop worrying and love Web Components"
 canonical_url: https://www.thatjoemoore.com/posts/2018-01/byu-theme-components/
-date: 2018-01-29T21:27:42-07:00
-published: false
+date: 2018-02-08T21:27:42-07:00
+published: true
 tags: [web components, design]
 ---
+
+_In my maturation as a Software Engineer, I've found that stories of the problems and solutions
+that other engineers have encountered to be invaluable tools for improving and learning. So, I'm
+going to start sharing some of my code stories. This is the first of (hopefully) many._
 
 This is the story of an interesting engineering effort I've participated in over the last year.
 It's been a really fun side project for me (~20 hours a week at the start, ~5 hours a week
@@ -57,16 +61,38 @@ iterate on the design across several of their sites, so the designers could get 
 what worked in the real world and what didn't.  However, for long-term use, we decided that
 we wanted a solution that gave us three things:
 
-1. Easy integration with any CMS, especially Drupal and Wordpress, as well as hand-written pages and applications.
-2. Simple use with very little ceremony and structure.
-3. The ability to maintain a single codebase and push updates and bugfixes out to everyone quickly and easily.
+* [ ] Cross-platform
+* [ ] Simple
+* [ ] Fixable
+
+## Cross-Platform
+
+We have a wide variety of web hosting platforms across campus, ranging from simple static
+sites, to CMSes like Drupal and Wordpress, to complex single-page apps written in Angular,
+React, and other frameworks. We needed a solution that would allow a small team to make our
+theme work consistently across all platforms. Ideally, this would mean having one single
+codebase for everything.
+
+## Simple
+
+We have a wide variety of skill sets on campus, ranging from seasoned, 30-year veterans to
+CS students who got a part-time job maintaining a departmental site. We needed a solution
+that was simple and easy to consume, even if the developer doesn't understand everything
+that's going on - if you can't reliably copy and paste from examples, it would be too
+complicated.
+
+## Fixable
+
+One of the problems we had run into in the past was that, as the theme was improved, only
+new sites would adopt the improvements. Because every site kept their own copy of the theme
+code, there was no good way to distribute updates and fixes.
+
+# Web Components to the Rescue
 
 A few of us in the group had been playing with Web Components, and the v1 version of the
 specifications had just been implemented in Chrome. After looking at several proposals on
 how to reach our goals, we decided that Web Components would give us a lot of what we were
 looking for.
-
-# Web Components to the Rescue
 
 Web Components solved a lot of our problems. Because they're a platform-level primitive,
 we didn't have to worry as much about integration - they can (theoretically) integrate
@@ -92,6 +118,12 @@ Angular (2+), VueJS, and others.
 There are a handful of SaaS tools doing some truly awful things to the DOM that we haven't
 gotten working yet, but for the most part, it's been pretty uneventful.
 
+__Goal Check In:__
+
+* [x] Cross-platform
+* [ ] Simple
+* [ ] Fixable
+
 Web Components also promised to solve some of our complexity problems. If you're familiar
 with Bootstrap, you know how, in order to use their styles, you have to structure your markup
 in just the right way, with lots of nested `div`s and special classes. It's really easy to get
@@ -99,6 +131,9 @@ lost in all of that structure, especially since the design we were given had som
 layout differences between mobile and desktop views. The concept of slots in Shadow DOM gave
 us a really easy way to hide the markup complexity from the consumer, while still allowing
 them to plug in all of their site-specific things.
+
+(If you're unfamiliar with Shadow DOM, slots are a lot like doing component composition with
+`children` in React or `<ng-content>` in Angular)
 
 Our final header markup looks something like this:
 
@@ -199,31 +234,105 @@ being rendered by the Shady DOM polyfill, which combines all of the content into
 I've actually simplified that a little. It's not pretty, and Web Components give us this
 nice little wrapper behind which we can hide all of this complexity.
 
-## There are Always Trade-offs
+__Goal Check In:__
 
-Web Components come with their own challenges, though. A year ago, there were still a lot of 
-unanswered questions. [Polymer 2](https://www.polymer-project.org/) was still a few months 
-from being released, and we weren't enamoured with Polymer's insistence on using the 
-never-going-to-be-implemented HTML Imports specification. 
+* [x] Cross-platform
+* [x] Simple
+* [ ] Fixable
+
+# Dynamic Distribution
+
+(This is the part I'm really proud of)
+
+Once we had a working set of components, we needed some way to distribute them to developers
+on campus. We considered using some sort of package manager, like NPM, but we quickly
+determined that it would not fit our needs. While it would give us a simple way to push out
+updates, there would be no way to guarantee that sites would see the update. We have sites
+that will go years without seeing an update, and, in the event of an important bug, we
+wanted to be able to have even those sites get the update. In addition, with the variety of
+platforms we needed to support, it would be hard to converge on a single package manager that
+would be easy for everyone to use.
+
+The solution we converged on was to build a central CDN and have all sites load resources
+from it. This has turned out to be a great idea. We built a process that could respond to
+webhook notifications from Github and push code changes to the CDN. My office has been 
+aggressively pursuing a move to Amazon Web Services, so we build the CDN using Amazon S3,
+Cloudfront, and CodeBuild.
+
+Our CDN's secret sauce is its assembler. When we make any pushes to any of our Github
+repositories, an AWS Lambda function receives a webhook notification and kicks off a build
+running on AWS CodeBuild. We use CodeBuild because a) we don't have to run any servers for
+it and b) it allows us to execute basically anything that can run in a docker container.
+The assembler looks at a list of repositories that are included in the CDN, then uses
+the Github API to find all of the branches and tags that have changed or been created since
+the last assembler run. It pulls down the necessary files, then copies the required files
+into our S3 bucket.
+
+In order to provide automatic updates, we include the concept of 'aliases' in the CDN.
+Aliases use semver parsing of Git tags to create aliases like `latest` (always the highest version
+number), `1.x.x` (gets all minor and bugfix releases), and `1.1.x` (gets all bugfix releases
+for the 1.1 major release). We also include an `unstable` alias, which points to whatever is
+currently on master. Users can also stick to a specific release by providing an explicit version
+number. This allows us to provide automatic updates to all most sites, while giving more
+control to those who desire it.
+
+When a consumer wants to use something from our CDN, they construct a URL like this:
+
+```
+https://cdn.byu.edu/{library name}/{version or alias}/{file name}
+```
+
+So, the URL for the main Javascript for the always up-to-date version our theme components is 
+`https://cdn.byu.edu/byu-theme-components/latest/byu-theme-components.min.js`. Getting the
+current latest version and turning off auto-updates would have a URL of 
+`https://cdn.byu.edu/byu-theme-components/1.2.3/byu-theme-components.min.js`.
+
+We want to maximize the cacheability of all of our assets, but this can complicate the rapid
+rollout of new releases. We've found a good compromise by assuming that tags will never change
+(which is usually true). So, we serve anything coming from a specific tag with cache headers
+that indicate that it is cacheable forever 
+(`Cache-Control: immutable, public, max-age=31557600, s-maxage=31557600`). Then, when a user
+requests an alias (like `latest`), we send back a 302 redirect to the specific tag and set
+a cache expiry on the redirect to 1 hour. This gives us a good balance between having updates
+roll out often and keeping useful things in the user's cache. The redirects happen quickly enough
+and transfer little enough data to the user that they don't add much overhead, and we keep the
+vast majority of our assets cached in the browser forever (well, a year in most browsers, but
+that might as well be forever, right? I mean, it's longer than the lifetime of most Javascript
+frameworks).
+
+__Goal Check In:__
+
+* [x] Cross-platform
+* [x] Simple
+* [x] Fixable
+
+# There are Always Trade-offs
+
+Everything in our trade has trade-offs. Web components are no exception, and a year ago, there 
+were still a lot of unanswered questions. 
+
+## Opting-out of a Framework
+
+When we started, [Polymer 2](https://www.polymer-project.org/) was 
+still a few months from being released, and we weren't enamoured with Polymer's insistence on 
+using the never-going-to-be-implemented HTML Imports specification. 
 [SkateJS](http://skatejs.netlify.com/) was an option, but we didn't really like the way
 Skate was handling templates.
 
-### Opting-out of a Framework
-
-We decided early on that we didn't really need a Web Component framework. Our components
-were going to be fairly static - stamp the DOM once, allow for a few small dynamic
-things, and be done with it. So, we thought, it wouldn't be that terrible to use the
-raw Custom Element APIs, augmented with a small collection of helper functions for doing
-common things (like stamping a template to the Shadow DOM).
+Faced with these options, we decided early on that we didn't really need a Web Component
+framework. Our components were going to be fairly static - stamp the DOM once, allow for 
+a few small dynamic things, and be done with it. So, we thought, it wouldn't be that 
+terrible to use the raw Custom Element APIs, augmented with a small collection of helper 
+functions for doing common things (like stamping a template to the Shadow DOM).
 
 If we were starting this project now, I think we would be using some form of framework, 
-probably Polymer 3 (even though it's not released yet) or SkateJS 5 (with it's nice new 
+probably Polymer 3 (even though it's not released yet) or SkateJS 5 (with its nice new 
 pluggable renderers). While our setup isn't THAT complicated, we do still re-invent the
-wheel in a lot of ways. As I stated on Twitter,
+wheel in a lot of ways.
 
 {{< tweet 904902463588839424 >}}
 
-### Singing the Load-Time Blues
+## Singing the Load-Time Blues
 
 That still left the problem of loading our elements. With the HTML Imports spec,
 you define your elements in an HTML file, which contains your markup, your styles,
@@ -255,9 +364,178 @@ as a result, importing our theme component bundle is simple:
 <script async src="https://cdn.byu.edu/byu-theme-components/latest/byu-theme-components.min.js"></script>
 ```
 
-(We'll cover our CDN later).
+## Styling the Unstyleable
 
-### Styling the Unstyleable
+Shadow DOM is great for keeping our template CSS contained, but what about styling the
+pieces that the consumer hands us in our slots? The whole point of this project is the
+styling!
 
+Shadow DOM does provide an answer for styling slotted content, but it's a limited one.
+I can make use of the `::slotted` pseudo-element to style them:
 
+```html
+<style>
+  .my-slot-wrapper ::slotted(*) {
+    color: navy;
+  }
+</style>
+<div class="my-slot-wrapper">
+    <slot></slot>
+</div>
+```
+
+You'll notice that `::slotted` takes in another selector. That selector can be any
+CSS selector, with one limitation: it can only be one level deep. You can't have
+a selector like `::slotted(div > a)`, it can only be one level deep.
+
+Most of the time, this limitation isn't a problem, but we quickly ran into two major issues:
+styling links and styling inputs.
+
+As soon as we published a beta version of our theme components, we saw people adding
+links to their site titles that were nested inside of `<h1>`: 
+
+```html
+<byu-header>
+  <h1 slot="site-title"><a href="my-site.byu.edu">My Site</a></h1>
+</byu-header>
+```
+
+Normally, nested text elements
+wouldn't cause any problems for us - we set `color`, `font-size`, and `font-family` on
+the parent element, and it cascades down. Links, however, are special. Every user-agent
+stylesheet I've seen applies their own `color` and `text-decoration` to links, and doesn't
+inherit those styles from the parent. If the `<a>` is the element with the `slot` attribute,
+this isn't a problem - the styles get directly applied to it. However, when the link is
+nested inside another element, we can't style it from within the Shadow DOM.
+
+The other problem we ran into was styling search inputs. We were aiming for compatibility
+across a wide range of frameworks and CMSes, and each one has their own ways of wrapping
+inputs that we couldn't get rid of. However, we needed to make sure that their inputs
+got styled properly. One solution could have been to present our own styled input and use
+Javascript to keep the two up-to-date with each other, but we felt that this approach had
+a lot of potential to confuse developers. For example, it would make implementing something
+like an autocomplete popup very, very difficult.
+
+So, we needed to be able to have this:
+
+```html
+<byu-search>
+  <div class="my-cms-wrapper">
+    <input type="search" />
+  </div>
+</byu-search>
+```
+
+get styled just like:
+
+```html
+<byu-search>
+  <input type="search" />
+</byu-search>
+```
+
+The solution to both of these problems turned out to be something we were already
+familiar with: external CSS stylesheets. We added a stylesheet (we called it the
+'extra' styles) containing special
+selectors to handle these and other corner cases, and we have developers include
+both the stylesheet and the Javascript in their pages:
+
+```html
+<link rel="stylesheet" href="https://cdn.byu.edu/byu-theme-components/latest/byu-theme-components.min.css">
+<script async src="https://cdn.byu.edu/byu-theme-components/latest/byu-theme-components.min.js"></script>
+```
+
+Developers were already used to including pairs of CSS and Javascript files (like with
+jQuery UI), so we weren't introducing anything new to them.
+
+Because we were using custom element names, the selectors in the 'extra' stylesheet can
+be very simple, yet specific:
+
+```css
+byu-header > [slot="site-title"] a {
+    text-decoration: none;
+    color: white;
+}
+```
+
+While we try to avoid selectors that are more than two layers deep, having the outer two
+layers (`byu-header > [slot="site-title"]`) gives us pretty good scoping, so our styles
+don't bleed over and affect the styles on the page.  There's still the possibility that
+some stylesheet later on the page will do this something like
+
+```css
+a {
+    color: green;
+}
+```
+
+We decided that, since we can't solve everything, we won't try to solve this problem.
+After all, this is just an instance of CSS behaving as expected, so developers should
+be able to figure out why the site title is suddenly green all on their own (well, with
+the help of their browser's devtools, at least).
+
+## &lt;blink&gt; Considered Harmful _(Flash of Unstyled Content)_
+
+One of the pitfalls to using JS to render parts of a UI is the Flash of Unstyled Content.
+This is a common problem across frontend frameworks and isn't specific to Web Components,
+though I hope that proposals like [Declarative Shadow DOM](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Shadow-DOM.md)
+can help reduce the impact of it when using Web Components.
+
+Typically, the strategy for overcoming this is to embed some CSS in the initial HTML
+that will only apply until the framework has loaded and starts rendering things. We
+don't have a good way to have people embed styles and still preserve our goal of easily
+pushing out updates, so we've compromised and embed the Flash of Unstyled Content styles
+in our 'extra' styles. This CSS file is much smaller and parses much quicker than our JS,
+so we can get a very good experience from it. Once the components have stamped their 
+template, they apply the `byu-component-rendered` class to themselves, so all we need to 
+do in our styles is look for components that don't have the class:
+
+```css
+byu-header:not(.byu-component-rendered) {
+    /* nasty fallback styles here */
+}
+```
+
+Since our CSS gets resolved synchronously, this allows our pages to look almost-right 
+while we wait for the JS to finish its work. This leads to practically seamless page transitions,
+especially once the browser has cached the CSS.
+
+# Future Work
+
+One thing we want to add in the future is client-side analytics. While we can gather a fair
+amount of information from our server logs, we can't see some critical things, like how many
+sites are using different configuration options and component combinations. We're looking
+at using `navigator.sendBeacon` to send light-weight analytics back to our servers with
+information like the build of the code that has been loaded, which components actually get
+used, different features of each component that are being used, etc. We don't want to rely
+on an external analytics site, because we don't want to add the concerns about load time
+and privacy that come with them to all of our sites. If individual sites want to use a 
+full-featured analytics tool, they'll have that option without anything we do interfering with
+that.
+
+Another thing we want to add is automated tests.  There aren't a lot of logical tests we can
+do, since there isn't a lot of logic in our components, but we are really looking forward to
+adding tests that use visual diffing tools like [Pixelmatch](https://github.com/mapbox/pixelmatch)
+to detect when we've made changes that alter the styling of our elements. The goal will
+be to have a step in our CDN assembler that runs the tests and doesn't deploy the new code
+if they fail.
+
+# Summary
+
+This has been a really fun project to work on, forcing us to tackle a lot of interesting
+challenges. I'm really proud of the solutions we've come up with, as well as the way
+that a group of developers from different departments and of different skill levels all
+came together to come up with a solution that works well for everyone. While our code isn't
+perfect, and we haven't really had a chance to bring it all in line with a single style, 
+I feel like we've done a pretty good job.
+
+For those who would like to take a look at our code, it is all part of the 
+[BYU Web Github Organization](https://github.com/byuweb/) and is licensed with Apache 2.0.
+
+A few quick links:
+
+* [Our main theme components](https://github.com/byuweb/byu-theme-components)
+    * [A gallery of the theme components](http://2017-components-demo.cdn.byu.edu/)
+* [Our CDN source](https://github.com/byuweb/web-cdn)
+* [Drupal](https://github.com/byuweb/byu2017_d7) and [Wordpress](https://github.com/byuweb/WordPress) CMS themes that leverage the Web components.
 
