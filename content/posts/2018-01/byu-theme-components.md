@@ -1,5 +1,9 @@
 ---
-title: "Bringing Order to Web Design Chaos"description: "Or, how I learned to stop worrying and love Web Components"canonical_url: https://www.thatjoemoore.com/posts/2018-01/byu-theme-components/date: 2018-02-08T21:27:42-07:00published: true
+title: "Bringing Order to Web Design Chaos"
+description: "Or, how I learned to stop worrying and love Web Components"
+canonical_url: https://www.thatjoemoore.com/posts/2018-01/byu-theme-components/
+date: 2018-02-08T21:27:42-07:00
+published: true
 tags: [web components, design]
 ---
 _In my maturation as a Software Engineer, I've found that stories of the problems and solutions that other engineers have encountered to be invaluable tools for improving and learning. So, I'm going to start sharing some of my code stories. This is the first of (hopefully) many._
