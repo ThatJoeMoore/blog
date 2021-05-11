@@ -5,6 +5,10 @@
   <title>Joseph Moore 𝘚𝘰𝘧𝘵𝘸𝘢𝘳𝘦 𝘌𝘯𝘨𝘪𝘯𝘦𝘦𝘳</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Condensed&display=swap" rel="stylesheet" />
   <link href="./css/cv.css" rel="stylesheet" />
+  <script>
+    const theme = new URLSearchParams(window.location.search).get('theme')
+    document.documentElement.setAttribute('theme', theme);
+  </script>
 </head>
 
 <body>
@@ -249,7 +253,11 @@
     </main>
 
     <footer class="web-only">
-      <a href="./CV-web.pdf">Download PDF Version</a>
+      Download:
+      <ul>
+        <li><a href="./CV-web.pdf">PDF Version</a></li>
+        <li><a href="./CV-web-printer.pdf">Printer-friendly PDF</a></li>
+      </ul>
     </footer>
   </div>
 </body>
