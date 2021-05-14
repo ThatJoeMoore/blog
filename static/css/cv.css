@@ -1,8 +1,10 @@
 /* ====== General ====== */
 :root {
-  --color-secondary: #005555;
+  --color-secondary: rgb(0, 85, 85);
+  --color-sidebar-bg: rgba(0, 85, 85, 0.1);
   --color-accent: rgb(0, 51, 51);
   --color-header-bg: var(--color-secondary);
+  --color-org-border: var(--color-secondary);
   --color-header-text: white;
   --color-body-links: darkslategrey;
   --font-header: "Roboto", sans-serif;
@@ -10,6 +12,8 @@
   --font-body: "Roboto", sans-serif;
 }
 html[theme="print"]:root {
+  --color-sidebar-bg: rgba(0, 0, 0, 0.05);
+  --color-org-border: rgba(0, 0, 0, 0.5);
   --color-header-bg: white;
   --color-header-text: black;
   --color-accent: black;
@@ -24,6 +28,7 @@ html,
 body {
   font-family: var(--font-body);
   margin: 0;
+  line-height: 1.5;
 }
 a {
   color: inherit;
@@ -56,6 +61,7 @@ header .name-title {
   flex: 2;
   display: flex;
   flex-direction: row;
+  line-height: normal;
 }
 .name {
   font-size: 36pt;
@@ -95,8 +101,9 @@ header .contacts {
 /* ====== Main Col ====== */
 main {
   display: flex;
-  flex-direction: row;
+  flex-direction: row-reverse;
   width: 100%;
+  font-size: 10.5pt;
 }
 h1,
 h2,
@@ -110,9 +117,6 @@ h6 {
   flex: 2;
   /* border: 1px solid red; */
   /* min-height: 100px; */
-}
-main {
-  font-size: 10.5pt;
 }
 main > * {
   padding: 16px;
@@ -135,7 +139,7 @@ main h3 {
   font-weight: normal;
   margin-top: 0.3em;
   margin-bottom: 0.3em;
-  margin-left: 0.5em;
+  /* margin-left: 0.5em; */
 }
 .timeframe {
   font-style: italic;
@@ -149,7 +153,7 @@ ul {
   margin-top: 0;
   margin-bottom: 1em;
   padding-left: 1.5em;
-  list-style-image: url("chevron-right.svg");
+  list-style-image: url("./chevron-right.svg");
 }
 dl {
   margin-top: 0;
@@ -157,10 +161,20 @@ dl {
 dt:first-of-type {
   margin-top: 0;
 }
+.org {
+  color: var(--color-secondary);
+  border-bottom: 1px solid var(--color-org-border);
+}
+.role {
+  font-style: italic;
+  display: flex;
+  justify-content: space-between;
+}
 
 /* ====== Sidebar ====== */
 .sidebar {
   flex: 1;
+  background-color: var(--color-sidebar-bg);
 }
 dl > dt {
   font-family: var(--font-subheader);
@@ -169,8 +183,27 @@ dl > dt {
   margin-top: 0.5em;
 }
 dl > dd {
-  margin-left: 0.75em;
+  margin-left: 0.5em;
 }
+.sidebar ul {
+  padding-left: 0.75em;
+}
+.sidebar li {
+  margin-bottom: 0.25em;
+}
+.sidebar .skill {
+  display: flex;
+  justify-content: space-between;
+}
+.sidebar li .level {
+  text-align: right;
+}
+.edu-notes {
+  margin-left: 0.5em;
+  font-style: italic;
+}
+
+/* ====== Misc ====== */
 
 a {
   color: var(--color-body-links);
@@ -211,6 +244,9 @@ body {
   @page {
     size: letter portrait;
     margin: 0.25in;
+  }
+  main > * {
+    padding-bottom: 0;
   }
 }
 
